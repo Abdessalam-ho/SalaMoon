@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Shared Space 🌙</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Playfair Display', Georgia, serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(160deg, #0b1026 0%, #1a1440 50%, #0e1a36 100%);
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: twinkle 2.5s ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 0.9; transform: scale(1.2); }
+        }
+
+        .moon {
+            position: fixed;
+            top: 40px;
+            right: 60px;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fff8e1, #f7e6b5 60%, #e8d49a);
+            box-shadow: 0 0 60px rgba(255, 240, 190, 0.55), 0 0 120px rgba(255, 240, 190, 0.25);
+            z-index: 0;
+        }
+        .moon::after {
+            content: '';
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            right: 220px;
+            border-radius: 50%;
+            background: #0b1026;
+        }
+
+        .wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 30px 18px 60px;
+        }
+
+        h1 {
+            text-align: center;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.7em;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: rgba(255, 240, 210, 0.95);
+            text-shadow: 0 0 30px rgba(255, 230, 180, 0.5);
+            margin-bottom: 6px;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 18px;
+            padding: 18px 16px;
+            margin-bottom: 14px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* ---------- Entry screen ---------- */
+        #entry { display: none; }
+        #entry.show { display: block; }
+        .label {
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 6px;
+        }
+        .field {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 1em;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            outline: none;
+            margin-bottom: 12px;
+        }
+        .field:focus { border-color: rgba(255, 230, 180, 0.5); }
+        .btn {
+            width: 100%;
+            padding: 13px;
+            font-family: 'Playfair Display', serif;
+            font-size: 0.95em;
+            font-weight: 600;
+            color: rgba(255, 240, 210, 0.9);
+            background: linear-gradient(135deg, rgba(233, 30, 99, 0.35), rgba(194, 24, 91, 0.35));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: linear-gradient(135deg, rgba(233, 30, 99, 0.5), rgba(194, 24, 91, 0.5));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 30, 99, 0.15);
+        }
+
+        /* ---------- Main screen ---------- */
+        #main { display: none; }
+        #main.show { display: block; }
+
+        .presence {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 0.78em;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .dot-online {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        .typing-hint {
+            text-align: center;
+            font-size: 0.75em;
+            color: rgba(255, 200, 150, 0.7);
+            min-height: 18px;
+            margin-bottom: 12px;
+        }
+
+        .live-draft {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            display: none;
+            animation: fadein 0.3s ease;
+        }
+        .live-draft.show { display: block; }
+        .live-draft .who {
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .live-draft .live-text {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 0.95em;
+            line-height: 1.5;
+            opacity: 0.75;
+        }
+        .live-draft .cancel {
+            margin-top: 8px;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.72em;
+            cursor: pointer;
+        }
+        .live-draft .cancel:hover { color: #ff6b6b; border-color: rgba(255,90,90,0.4); }
+        .live-draft .send-live {
+            margin-top: 8px;
+            background: linear-gradient(135deg, rgba(233,30,99,0.35), rgba(194,24,91,0.35));
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,240,210,0.9);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 0.72em;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .live-draft .send-live:hover { background: linear-gradient(135deg, rgba(233,30,99,0.5), rgba(194,24,91,0.5)); }
+
+        .shared-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 230, 180, 0.2);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .shared-card .label {
+            font-size: 0.8em;
+            color: rgba(255, 230, 180, 0.7);
+            margin-bottom: 8px;
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+        }
+        #sharedBox {
+            width: 100%;
+            min-height: 140px;
+            padding: 12px 14px;
+            font-size: 1em;
+            font-family: inherit;
+            color: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            outline: none;
+            resize: vertical;
+        }
+        #sharedBox:focus { border-color: rgba(255, 230, 180, 0.5); }
+        #sharedOwner {
+            text-align: center;
+            font-size: 0.7em;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 6px;
+            min-height: 14px;
+        }
+
+        .draw-card { border-color: rgba(158, 203, 255, 0.25); }
+        .draw-tools {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .swatch:hover { transform: scale(1.15); }
+        .swatch.active { border-color: #fff; transform: scale(1.2); }
+        .clear-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.72em;
+            cursor: pointer;
+            margin-left: auto;
+        }
+        .clear-btn:hover { color: #ff6b6b; border-color: rgba(255,90,90,0.4); }
+        #drawCanvas {
+            width: 100%;
+            height: 260px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.75);
+            border-radius: 10px;
+            padding: 6px 11px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tool-btn:hover { background: rgba(255, 255, 255, 0.12); }
+        .tool-btn.active {
+            background: rgba(233, 30, 99, 0.35);
+            border-color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 240, 210, 0.95);
+        }
+        .letter-picker {
+            display: none;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+        .letter-picker.show { display: flex; }
+        .letter-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+        .letter-btn:hover { background: rgba(255, 255, 255, 0.14); }
+        .letter-btn.active {
+            background: rgba(233, 30, 99, 0.4);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 240, 210, 0.95);
+        }
+
+        .emoji-bar { display: flex; flex-direction: column; margin-bottom: 8px; }
+        .emoji-toggle {
+            align-self: flex-start;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.72em;
+            font-family: 'Segoe UI', sans-serif;
+            cursor: pointer;
+        }
+        .emoji-toggle:hover { color: rgba(255, 230, 180, 0.9); border-color: rgba(255, 230, 180, 0.4); }
+        .emoji-strip {
+            display: none;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+        }
+        .emoji-strip.show { display: flex; }
+        .emoji-btn {
+            background: none;
+            border: none;
+            font-size: 1.35em;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+            line-height: 1;
+        }
+        .emoji-btn:hover { background: rgba(255, 255, 255, 0.14); }
+        .shape-preview-info {
+            text-align: center;
+            font-size: 0.7em;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 6px;
+            min-height: 14px;
+        }
+
+        .composer textarea {
+            width: 100%;
+            min-height: 90px;
+            padding: 12px 14px;
+            font-size: 0.95em;
+            font-family: inherit;
+            color: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            outline: none;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+        .composer textarea:focus { border-color: rgba(255, 230, 180, 0.5); }
+
+        .post {
+            background: rgba(255, 255, 255, 0.045);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 3px solid #ff9ecb;
+            border-radius: 14px;
+            padding: 14px 14px 10px;
+            margin-bottom: 12px;
+            animation: fadein 0.4s ease;
+        }
+        @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        .post-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .post-author {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        .post-time { font-size: 0.7em; color: rgba(255, 255, 255, 0.3); }
+        .post-body {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        .del {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 1.1em;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .del:hover { color: #ff6b6b; background: rgba(255, 90, 90, 0.12); }
+
+        .empty {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.85em;
+            padding: 30px 0;
+            font-style: italic;
+        }
+
+        .setup-note {
+            text-align: center;
+            font-size: 0.8em;
+            color: #ffd2a0;
+            background: rgba(255, 180, 90, 0.1);
+            border: 1px solid rgba(255, 180, 90, 0.25);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .fr { display: block; font-size: 0.78em; color: rgba(255, 255, 255, 0.45); font-style: italic; margin-top: 3px; }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <div class="moon"></div>
+
+    <div class="wrap">
+        <h1>Our Shared Space 🌙<span class="fr">Notre Espace Partagé</span></h1>
+        <div class="subtitle">write together, read each other's heart, live<span class="fr">écrivez ensemble, lisez le cœur de l'autre, en direct</span></div>
+
+        <div style="text-align:center;margin-bottom:16px">
+            <a id="quizLink" href="quiz.html" class="btn" style="display:inline-block;width:auto;padding:10px 22px;text-decoration:none">💞 Our Questions →</a>
+        </div>
+
+        <div class="setup-note" id="setupNote" style="display:none">
+            ⚠️ Firebase isn't configured yet. Open this file, replace the <b>YOUR_API_KEY</b> placeholders in the
+            <b>FIREBASE_CONFIG</b> section, then refresh. <span class="fr">Firebase n'est pas encore configuré.</span>
+        </div>
+
+        <!-- Entry -->
+        <div class="card" id="entry">
+            <div class="label">Your name / Ton nom</div>
+            <input class="field" id="nameInput" placeholder="e.g. Baby 🤍 ..." maxlength="30">
+            <div class="label">Room / La salle</div>
+            <input class="field" id="roomInput" placeholder="ours" maxlength="50">
+            <button class="btn" onclick="enter()">Enter 💫</button>
+        </div>
+
+        <!-- Main -->
+        <div id="main" class="show">
+            <div class="presence" id="presence"></div>
+            <div class="typing-hint" id="typingHint"></div>
+
+            <div class="shared-card">
+                <div class="label">Our shared note — type together 🤍<span class="fr">Notre note partagée — écrivez ensemble</span></div>
+                <div class="emoji-bar">
+                    <button class="emoji-toggle" onclick="toggleEmojis('emojiShared-strip')">😊 emoji</button>
+                    <div class="emoji-strip" id="emojiShared-strip"></div>
+                </div>
+                <textarea id="sharedBox" placeholder="Write here together... écrivez ici ensemble..." oninput="onSharedInput()" onfocus="localEditing=true" onblur="localEditing=false"></textarea>
+                <div id="sharedOwner"></div>
+            </div>
+
+            <div class="shared-card draw-card">
+                <div class="label">Our drawing — draw together 🎨<span class="fr">Notre dessin — dessinez ensemble</span></div>
+                <div class="draw-tools">
+                    <div id="palette"></div>
+                    <button class="clear-btn" onclick="clearDrawing()">clear 🧽</button>
+                </div>
+                <div class="draw-tools" id="shapeTools">
+                    <button class="tool-btn active" id="tool-free" onclick="setTool('free')" title="pen">✏️</button>
+                    <button class="tool-btn" id="tool-line" onclick="setTool('line')" title="line">╱</button>
+                    <button class="tool-btn" id="tool-circle" onclick="setTool('circle')" title="circle">○</button>
+                    <button class="tool-btn" id="tool-rect" onclick="setTool('rect')" title="rectangle">▭</button>
+                    <button class="tool-btn" id="tool-triangle" onclick="setTool('triangle')" title="triangle">△</button>
+                    <button class="tool-btn" id="tool-heart" onclick="setTool('heart')" title="heart">♥</button>
+                    <button class="tool-btn" id="tool-star" onclick="setTool('star')" title="star">★</button>
+                    <button class="tool-btn" id="tool-moon" onclick="setTool('moon')" title="moon">🌙</button>
+                    <button class="tool-btn" id="tool-ring" onclick="setTool('ring')" title="ring">💍</button>
+                    <button class="tool-btn" id="tool-infinity" onclick="setTool('infinity')" title="infinity">∞</button>
+                    <button class="tool-btn" id="tool-man" onclick="setTool('man')" title="man">👨</button>
+                    <button class="tool-btn" id="tool-woman" onclick="setTool('woman')" title="woman">👩</button>
+                    <button class="tool-btn" id="tool-letter" onclick="setTool('letter')" title="letter">A</button>
+                    <button class="tool-btn" id="tool-paint" onclick="setTool('paint')" title="thick color brush">🖌️</button>
+                    <button class="tool-btn" id="tool-eraser" onclick="setTool('eraser')" title="eraser">🧽</button>
+                    <button class="tool-btn" id="fillBtn" onclick="toggleFill()" title="fill shapes on/off">🪣</button>
+                </div>
+                <div class="letter-picker" id="letterPicker"></div>
+                <canvas id="drawCanvas"></canvas>
+                <div class="shape-preview-info" id="shapeHint"></div>
+            </div>
+
+            <div class="card composer">
+                <div class="emoji-bar">
+                    <button class="emoji-toggle" onclick="toggleEmojis('emojiComposer-strip')">😊 emoji</button>
+                    <div class="emoji-strip" id="emojiComposer-strip"></div>
+                </div>
+                <textarea id="composerBox" placeholder="Write something... écris quelque chose..." oninput="onComposerInput()"></textarea>
+                <button class="btn" id="postBtn" onclick="postMessage()">Send 💌</button>
+            </div>
+
+            <div id="feed"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-database-compat.js"></script>
+
+    <script>
+        /* =====================================================
+           CONFIGURATION — SET THIS UP (see instructions below)
+           Go to https://console.firebase.google.com
+           1. Create a project
+           2. Add a web app  → copy the config values
+           3. Realtime Database → Create database
+              click on "Rules" and paste:
+              {
+                "rules": { ".read": true, ".write": true }
+              }
+           4. Paste your values below
+        ===================================================== */
+        var FIREBASE_CONFIG = {
+            apiKey: "AIzaSyDCPPSzchgaQLP9238jRbIkPk4YQW0jc8E",
+            authDomain: "salamoon-6c488.firebaseapp.com",
+            databaseURL: "https://salamoon-6c488-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "salamoon-6c488",
+            storageBucket: "salamoon-6c488.firebasestorage.app",
+            messagingSenderId: "888009338341",
+            appId: "1:888009338341:web:3d34ddc65ccb8f1cdd930c"
+        };
+
+        /* ---------- helpers ---------- */
+        var COLORS = ['#ff9ecb', '#9ecbff', '#b0ff9e', '#ffd29e', '#d29eff', '#9efff0'];
+        var uid = localStorage.getItem('ours_uid') || ('u' + Math.random().toString(36).slice(2, 10));
+        localStorage.setItem('ours_uid', uid);
+        var myName = '';
+        var myColor = localStorage.getItem('ours_color') || COLORS[Math.floor(Math.random() * COLORS.length)];
+        localStorage.setItem('ours_color', myColor);
+        var room = new URLSearchParams(location.search).get('room') || 'ours';
+        document.getElementById('roomInput').value = room;
+        var qLink = document.getElementById('quizLink');
+        if (qLink) qLink.href = 'quiz.html' + (room ? '?room=' + encodeURIComponent(room) : '');
+
+        var db = null;
+        var postsRef = null;
+        var presenceRef = null;
+        var typingOut = false;
+
+        /* ---------- entry ---------- */
+        var savedName = localStorage.getItem('ours_name');
+        if (savedName) {
+            myName = savedName;
+            document.getElementById('nameInput').value = myName;
+        }
+        document.getElementById('entry').classList.add('show');
+
+        function enter() {
+            myName = (document.getElementById('nameInput').value || '').trim();
+            if (!myName) { document.getElementById('nameInput').focus(); return; }
+            room = (document.getElementById('roomInput').value || 'ours').trim().replace(/[^a-z0-9-_]/gi, '') || 'ours';
+            localStorage.setItem('ours_name', myName);
+            if (qLink) qLink.href = 'quiz.html?room=' + encodeURIComponent(room);
+            init();
+        }
+
+        function init() {
+            if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.indexOf('YOUR_') === 0) {
+                document.getElementById('setupNote').style.display = 'block';
+                return;
+            }
+            try {
+                firebase.initializeApp(FIREBASE_CONFIG);
+                db = firebase.database();
+            } catch (e) {
+                document.getElementById('setupNote').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('entry').classList.remove('show');
+            document.getElementById('main').classList.add('show');
+
+            postsRef = db.ref('rooms/' + room + '/posts');
+            presenceRef = db.ref('rooms/' + room + '/presence');
+
+            /* presence: store my client under uid, remove on leave */
+            var p = {};
+            p[uid] = { name: myName, color: myColor, online: true, last: Date.now() };
+            presenceRef.update(p);
+            presenceRef.child(uid).onDisconnect().remove();
+
+            /* keep last-seen fresh so offline detection works */
+            setInterval(function () {
+                presenceRef.child(uid).set({ name: myName, color: myColor, online: true, last: Date.now() });
+                prunePresence();
+            }, 20000);
+
+            presenceRef.on('value', renderPresence);
+            prunePresence();
+
+            /* live posts */
+            postsRef.on('child_added', function (snap) { addPost(snap); });
+            postsRef.on('child_removed', function (snap) {
+                var el = document.getElementById('post-' + snap.key);
+                if (el) el.remove();
+                if (!document.getElementById('feed').children.length) showEmpty();
+            });
+            postsRef.on('child_changed', function (snap) {
+                var el = document.getElementById('post-' + snap.key);
+                if (el) {
+                    var d = snap.val();
+                    el.querySelector('.post-body').textContent = d.text;
+                }
+            });
+
+            /* typing broadcast */
+            db.ref('rooms/' + room + '/typing').on('value', function (snap) {
+                var v = snap.val() || {};
+                var list = [];
+                for (var k in v) {
+                    if (k !== uid && v[k].online && Date.now() - v[k].last < 4000) {
+                        list.push(v[k].name);
+                    }
+                }
+                document.getElementById('typingHint').textContent =
+                    list.length ? (list.join(', ') + ' is typing...<span class="fr">est en train d\'écrire...</span>') : '';
+                document.getElementById('typingHint').innerHTML =
+                    list.length ? (list.join(', ') + ' is typing... <span class="fr">en train d\'écrire</span>') : '';
+            });
+
+            watchShared();
+            initDrawing();
+        }
+
+        /* ---------- composer ---------- */
+        var typingTimer = null;
+        function onComposerInput() {
+            if (!db || !myName) return;
+            var val = document.getElementById('composerBox').value;
+            var ref = db.ref('rooms/' + room + '/typing/' + uid);
+            ref.set({ name: myName, online: true, last: Date.now() });
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(function () { ref.remove(); }, 2500);
+        }
+
+        /* ---------- shared note (both edit same text, live) ---------- */
+        var sharedRef = null;
+        var localEditing = false;
+        var sharedTimer = null;
+
+        function onSharedInput() {
+            if (!sharedRef || !myName) return;
+            localEditing = true;
+            clearTimeout(sharedTimer);
+            sharedTimer = setTimeout(function () {
+                var box = document.getElementById('sharedBox');
+                sharedRef.set({
+                    text: box.value,
+                    by: myName,
+                    color: myColor,
+                    last: Date.now()
+                });
+            }, 120);
+        }
+
+        function watchShared() {
+            sharedRef = db.ref('rooms/' + room + '/shared');
+            sharedRef.on('value', function (snap) {
+                var v = snap.val();
+                var box = document.getElementById('sharedBox');
+                var owner = document.getElementById('sharedOwner');
+                if (!v) {
+                    /* empty — don't clear someone else's typing */
+                    owner.textContent = '';
+                    return;
+                }
+                /* update from the other person, but never fight the local holder */
+                var editingHere = document.activeElement === box;
+                if (!editingHere && box.value !== v.text) {
+                    box.value = v.text || '';
+                }
+                var who = v.by && v.by !== myName ? v.by + ' is editing...' : (v.by || '');
+                owner.textContent = who ? who + '  ' + fmtTime(v.last) : '';
+            });
+        }
+
+        /* ---------- shared drawing (live canvas) ---------- */
+        var strokesRef = null;
+        var clearRef = null;
+        var strokeMap = {};       // firebase key -> stroke object
+        var localPoints = [];
+        var localStrokeKey = null;
+        var localAnchor = null;   // shape start point (normalized)
+        var localCursor = null;   // shape current point (normalized)
+        var isDrawing = false;
+        var drawColor = '#ff9ecb';
+        var drawWidth = 3;
+        var drawFilled = false;
+        var currentLetter = 'A';
+        var currentTool = 'free'; // free | eraser | paint | line | circle | rect | triangle | heart | star | moon | ring | infinity | letter
+        var strokePushTimer = null;
+        function isBrush(t) { return t === 'free' || t === 'eraser' || t === 'paint'; }
+
+        function initDrawing() {
+            strokesRef = db ? db.ref('rooms/' + room + '/strokes') : null;
+            clearRef = db ? db.ref('rooms/' + room + '/drawclear') : null;
+            buildPalette();
+            buildLetterPicker();
+            updateShapeHint();
+
+            sizeCanvas();
+            window.addEventListener('resize', function () {
+                sizeCanvas();
+                redrawCanvas();
+            });
+
+            var cvs = document.getElementById('drawCanvas');
+            cvs.addEventListener('pointerdown', function (e) {
+                e.preventDefault();
+                if (cvs.width === 0) sizeCanvas();
+                isDrawing = true;
+                var p = getPoint(e);
+                localStrokeKey = strokesRef
+                    ? strokesRef.push().key
+                    : 'local-' + Date.now() + '-' + Math.floor(Math.random() * 1e6);
+                if (isBrush(currentTool)) {
+                    localPoints = [p];
+                    var st = {
+                        kind: 'free',
+                        mode: currentTool === 'eraser' ? 'erase' : 'draw',
+                        color: drawColor,
+                        width: (currentTool === 'eraser' || currentTool === 'paint') ? 26 : drawWidth,
+                        points: localPoints.slice()
+                    };
+                    strokeMap[localStrokeKey] = st;
+                    redrawCanvas();
+                    if (strokesRef) strokesRef.child(localStrokeKey).set(st);
+                } else {
+                    /* shape / letter tool */
+                    localAnchor = p;
+                    localCursor = p;
+                    pushShape();
+                }
+                cvs.setPointerCapture && cvs.setPointerCapture(e.pointerId);
+            });
+            cvs.addEventListener('pointermove', function (e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                var p = getPoint(e);
+                if (isBrush(currentTool)) {
+                    var last = localPoints[localPoints.length - 1];
+                    if (!last || Math.abs(p.x - last.x) > 0.003 || Math.abs(p.y - last.y) > 0.003) {
+                        localPoints.push(p);
+                    }
+                    if (strokeMap[localStrokeKey]) {
+                        strokeMap[localStrokeKey].points = localPoints.slice();
+                        redrawCanvas();
+                    }
+                    clearTimeout(strokePushTimer);
+                    strokePushTimer = setTimeout(pushLocalStroke, 60);
+                } else {
+                    localCursor = p;
+                    pushShape();
+                }
+            });
+            cvs.addEventListener('pointerup', function (e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                isDrawing = false;
+                if (isBrush(currentTool)) {
+                    if (strokeMap[localStrokeKey]) {
+                        strokeMap[localStrokeKey].points = localPoints.slice();
+                        redrawCanvas();
+                    }
+                    pushLocalStroke();
+                } else {
+                    pushShape();
+                }
+                localStrokeKey = null;
+                localPoints = [];
+                localAnchor = null;
+                localCursor = null;
+            });
+
+            if (strokesRef) {
+                strokesRef.on('child_added', function (snap) {
+                    strokeMap[snap.key] = snap.val();
+                    redrawCanvas();
+                });
+                strokesRef.on('child_changed', function (snap) {
+                    strokeMap[snap.key] = snap.val();
+                    redrawCanvas();
+                });
+                strokesRef.on('child_removed', function (snap) {
+                    delete strokeMap[snap.key];
+                    redrawCanvas();
+                });
+            }
+            if (clearRef) {
+                clearRef.on('value', function () {
+                    strokeMap = {};
+                    redrawCanvas();
+                });
+            }
+        }
+
+        function pushLocalStroke() {
+            if (strokesRef && localStrokeKey && localPoints.length) {
+                strokesRef.child(localStrokeKey).update({ points: localPoints.slice() });
+            }
+        }
+
+        function pushShape() {
+            if (!localStrokeKey || !localAnchor || !localCursor) return;
+            var stroke = {
+                kind: 'shape',
+                shape: currentTool,
+                mode: 'draw',
+                color: drawColor,
+                width: drawWidth,
+                filled: drawFilled,
+                char: currentTool === 'letter' ? currentLetter : null,
+                a: { x: localAnchor.x, y: localAnchor.y },
+                b: { x: localCursor.x, y: localCursor.y }
+            };
+            strokeMap[localStrokeKey] = stroke;
+            redrawCanvas();
+            if (strokesRef) strokesRef.child(localStrokeKey).set(stroke);
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            var btnIds = ['free', 'line', 'circle', 'rect', 'triangle', 'heart', 'star', 'moon', 'ring', 'infinity', 'man', 'woman', 'letter', 'paint', 'eraser'];
+            btnIds.forEach(function (id) {
+                var b = document.getElementById('tool-' + id);
+                if (b) b.classList.toggle('active', id === tool);
+            });
+            var picker = document.getElementById('letterPicker');
+            if (picker) picker.classList.toggle('show', tool === 'letter');
+            updateShapeHint();
+        }
+
+        function toggleFill() {
+            drawFilled = !drawFilled;
+            var b = document.getElementById('fillBtn');
+            if (b) b.classList.toggle('active', drawFilled);
+        }
+
+        function updateShapeHint() {
+            var hint = document.getElementById('shapeHint');
+            if (!hint) return;
+            var msgs = {
+                free: '',
+                eraser: 'Eraser — drag to remove 🧽<span class="fr">Gomme — glissez pour effacer</span>',
+                line: 'Drag to draw a line<span class="fr">Dessinez une ligne</span>',
+                circle: 'Drag to draw a circle (from center)<span class="fr">Dessinez un cercle</span>',
+                rect: 'Drag to draw a rectangle<span class="fr">Dessinez un rectangle</span>',
+                triangle: 'Drag to draw a triangle<span class="fr">Dessinez un triangle</span>',
+                heart: 'Drag to draw a heart ♥<span class="fr">Dessinez un cœur</span>',
+                star: 'Drag to draw a star ★<span class="fr">Dessinez une étoile</span>',
+                moon: 'Drag to draw a crescent moon 🌙<span class="fr">Dessinez un croissant de lune</span>',
+                ring: 'Drag to draw a ring 💍<span class="fr">Dessinez une bague</span>',
+                infinity: 'Drag to draw infinity ∞<span class="fr">Dessinez l\'infini</span>',
+                man: 'Drag to draw a man figure 👨<span class="fr">Dessinez une silhouette d\'homme</span>',
+                woman: 'Drag to draw a woman figure 👩<span class="fr">Dessinez une silhouette de femme</span>',
+                letter: 'Pick a letter below, then drag on the canvas to place it (drag bigger/smaller)<span class="fr">Choisissez une lettre puis dessinez-la</span>'
+            };
+            hint.innerHTML = msgs[currentTool] || '';
+        }
+
+        function buildLetterPicker() {
+            var box = document.getElementById('letterPicker');
+            if (!box || box.children.length) return;
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(function (ch) {
+                var b = document.createElement('button');
+                b.className = 'letter-btn' + (ch === currentLetter ? ' active' : '');
+                b.textContent = ch;
+                b.onclick = function () { selectLetter(ch, b); };
+                box.appendChild(b);
+            });
+        }
+
+        function selectLetter(ch, btn) {
+            currentLetter = ch;
+            var box = document.getElementById('letterPicker');
+            if (!box) return;
+            box.querySelectorAll('.letter-btn').forEach(function (x) { x.classList.remove('active'); });
+            if (btn) btn.classList.add('active');
+        }
+
+        function getPoint(e) {
+            var cvs = document.getElementById('drawCanvas');
+            var r = cvs.getBoundingClientRect();
+            var x = (e.clientX - r.left) / r.width;
+            var y = (e.clientY - r.top) / r.height;
+            return { x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) };
+        }
+
+        function sizeCanvas() {
+            var cvs = document.getElementById('drawCanvas');
+            var r = cvs.getBoundingClientRect();
+            cvs.width = r.width;
+            cvs.height = r.height;
+        }
+
+        function redrawCanvas() {
+            var cvs = document.getElementById('drawCanvas');
+            var ctx = cvs.getContext('2d');
+            ctx.clearRect(0, 0, cvs.width, cvs.height);
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.globalCompositeOperation = 'source-over';
+            var keys = Object.keys(strokeMap);
+            for (var i = 0; i < keys.length; i++) {
+                var s = strokeMap[keys[i]];
+                if (!s) continue;
+                if (s.kind === 'shape') {
+                    drawShapeStroke(ctx, s, cvs.width, cvs.height);
+                } else {
+                    drawFreeStroke(ctx, s, cvs.width, cvs.height);
+                }
+            }
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawFreeStroke(ctx, s, w, h) {
+            if (!s.points || !s.points.length) return;
+            if (s.mode === 'erase') ctx.globalCompositeOperation = 'destination-out';
+            ctx.strokeStyle = s.color || '#ff9ecb';
+            ctx.lineWidth = (s.width || 3);
+            ctx.beginPath();
+            for (var i = 0; i < s.points.length; i++) {
+                var p = s.points[i];
+                var px = p.x * w;
+                var py = p.y * h;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function drawShapeStroke(ctx, s, w, h) {
+            if (!s.a || !s.b) return;
+            var col = s.color || '#ff9ecb';
+            ctx.strokeStyle = col;
+            ctx.fillStyle = col;
+            ctx.lineWidth = (s.width || 3);
+            var ax = s.a.x * w, ay = s.a.y * h;
+            var bx = s.b.x * w, by = s.b.y * h;
+            var cx = (ax + bx) / 2, cy = (ay + by) / 2;
+            var size = Math.max(Math.abs(bx - ax), Math.abs(by - ay));
+            var filled = !!s.filled;
+
+            /* letters */
+            if (s.shape === 'letter') {
+                var ch = s.char || 'A';
+                var fs = Math.max(size, 16);
+                ctx.font = '600 ' + fs + 'px "Playfair Display", Georgia, serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                if (filled) ctx.fillText(ch, cx, cy);
+                else ctx.strokeText(ch, cx, cy);
+                return;
+            }
+
+            ctx.beginPath();
+            var closed = true;
+            switch (s.shape) {
+                case 'line':
+                    ctx.moveTo(ax, ay);
+                    ctx.lineTo(bx, by);
+                    closed = false;
+                    break;
+                case 'circle':
+                    ctx.arc(ax, ay, Math.sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay)), 0, Math.PI * 2);
+                    break;
+                case 'rect':
+                    ctx.rect(Math.min(ax, bx), Math.min(ay, by), Math.abs(bx - ax), Math.abs(by - ay));
+                    break;
+                case 'triangle':
+                    ctx.moveTo((ax + bx) / 2, Math.min(ay, by));
+                    ctx.lineTo(Math.min(ax, bx), Math.max(ay, by));
+                    ctx.lineTo(Math.max(ax, bx), Math.max(ay, by));
+                    ctx.closePath();
+                    break;
+                case 'heart':
+                    drawHeartPath(ctx, cx, cy, Math.max(size, 20));
+                    break;
+                case 'star':
+                    drawStarPath(ctx, cx, cy, Math.max(size / 2, 10));
+                    break;
+                case 'moon':
+                    drawMoonPath(ctx, cx, cy, Math.max(size / 2, 10));
+                    break;
+                case 'ring':
+                    ctx.arc(cx, cy, Math.max(size / 2, 10), 0, Math.PI * 2);
+                    if (filled) ctx.arc(cx, cy, Math.max(size / 2, 10) * 0.6, 0, Math.PI * 2, true);
+                    break;
+                case 'infinity':
+                    drawInfinityPath(ctx, cx, cy, Math.max(size / 2, 10));
+                    break;
+                case 'man':
+                    drawManPath(ctx, cx, cy, Math.max(size, 24));
+                    closed = false;
+                    break;
+                case 'woman':
+                    drawWomanPath(ctx, cx, cy, Math.max(size, 24));
+                    closed = false;
+                    break;
+                default:
+                    return;
+            }
+            if (filled && closed) ctx.fill('evenodd');
+            else ctx.stroke();
+        }
+
+        function drawHeartPath(ctx, cx, cy, size) {
+            ctx.moveTo(cx, cy + size * 0.3);
+            ctx.bezierCurveTo(cx, cy + size * 0.1, cx - size * 0.5, cy + size * 0.15, cx - size * 0.5, cy - size * 0.35);
+            ctx.bezierCurveTo(cx - size * 0.5, cy - size * 0.55, cx - size * 0.2, cy - size * 0.6, cx, cy - size * 0.35);
+            ctx.bezierCurveTo(cx + size * 0.2, cy - size * 0.6, cx + size * 0.5, cy - size * 0.55, cx + size * 0.5, cy - size * 0.35);
+            ctx.bezierCurveTo(cx + size * 0.5, cy + size * 0.15, cx, cy + size * 0.1, cx, cy + size * 0.3);
+        }
+
+        function drawStarPath(ctx, cx, cy, r) {
+            var spikes = 5, step = Math.PI / spikes, rot = -Math.PI / 2;
+            ctx.moveTo(cx, cy - r);
+            for (var i = 0; i < spikes; i++) {
+                ctx.lineTo(cx + Math.cos(rot) * r, cy + Math.sin(rot) * r);
+                rot += step;
+                ctx.lineTo(cx + Math.cos(rot) * (r * 0.45), cy + Math.sin(rot) * (r * 0.45));
+                rot += step;
+            }
+            ctx.closePath();
+        }
+
+        function drawMoonPath(ctx, cx, cy, r) {
+            ctx.arc(cx, cy, r, Math.PI * 0.3, Math.PI * 1.7);
+            ctx.arc(cx + r * 0.6, cy - r * 0.1, r * 0.95, Math.PI * 1.5, Math.PI * 0.5, true);
+            ctx.closePath();
+        }
+
+        function drawInfinityPath(ctx, cx, cy, r) {
+            var n = 64;
+            for (var i = 0; i <= n; i++) {
+                var t = i / n * Math.PI * 2;
+                var d = 1 + Math.sin(t) * Math.sin(t);
+                var x = cx + r * Math.cos(t) / d;
+                var y = cy + r * Math.sin(t) * Math.cos(t) / d;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+        }
+
+        function drawManPath(ctx, cx, cy, h) {
+            ctx.moveTo(cx + h * 0.11, cy - h * 0.38);
+            ctx.arc(cx, cy - h * 0.38, h * 0.11, 0, Math.PI * 2);
+            ctx.rect(cx - h * 0.13, cy - h * 0.25, h * 0.26, h * 0.30);
+            ctx.rect(cx - h * 0.21, cy - h * 0.22, h * 0.06, h * 0.24);
+            ctx.rect(cx + h * 0.15, cy - h * 0.22, h * 0.06, h * 0.24);
+            ctx.rect(cx - h * 0.10, cy + h * 0.05, h * 0.08, h * 0.36);
+            ctx.rect(cx + h * 0.02, cy + h * 0.05, h * 0.08, h * 0.36);
+        }
+
+        function drawWomanPath(ctx, cx, cy, h) {
+            ctx.moveTo(cx + h * 0.11, cy - h * 0.38);
+            ctx.arc(cx, cy - h * 0.38, h * 0.11, 0, Math.PI * 2);
+            ctx.rect(cx - h * 0.11, cy - h * 0.25, h * 0.22, h * 0.22);
+            ctx.moveTo(cx - h * 0.11, cy - h * 0.03);
+            ctx.lineTo(cx + h * 0.11, cy - h * 0.03);
+            ctx.lineTo(cx + h * 0.20, cy + h * 0.27);
+            ctx.lineTo(cx - h * 0.20, cy + h * 0.27);
+            ctx.closePath();
+            ctx.rect(cx - h * 0.08, cy + h * 0.27, h * 0.06, h * 0.17);
+            ctx.rect(cx + h * 0.02, cy + h * 0.27, h * 0.06, h * 0.17);
+        }
+
+        function buildPalette() {
+            var box = document.getElementById('palette');
+            var colors = ['#ff9ecb', '#ff6b6b', '#ff3d7f', '#ffd29e', '#ffd700', '#fff2a8', '#b0ff9e', '#7ef9ff', '#9ecbff', '#d29eff', '#ffffff'];
+            box.innerHTML = '';
+            colors.forEach(function (c) {
+                var s = document.createElement('div');
+                s.className = 'swatch' + (c === drawColor ? ' active' : '');
+                s.style.background = c;
+                s.onclick = function () {
+                    drawColor = c;
+                    box.querySelectorAll('.swatch').forEach(function (x) { x.classList.remove('active'); });
+                    s.classList.add('active');
+                };
+                box.appendChild(s);
+            });
+        }
+
+        function clearDrawing() {
+            if (clearRef) clearRef.set(Date.now() + Math.random());
+        }
+
+        /* ---------- emoji pickers ---------- */
+        var EMOJIS = ['💕', '❤️', '🌹', '😘', '🌙', '✨', '🤍', '⭐', '🌸', '💖', '🙈', '😊', '💫', '🔥', '🍫', '🎶', '🥰', '😍', '🌷', '💋', '🫶', '🎀', '💌', '💍', '🕊️', '😻', '🤗', '☺️', '😇', '🌺', '💐', '🩷'];
+
+        function buildEmojiStrips() {
+            buildEmojiStrip('emojiShared-strip', 'sharedBox');
+            buildEmojiStrip('emojiComposer-strip', 'composerBox');
+        }
+
+        function buildEmojiStrip(stripId, boxId) {
+            var strip = document.getElementById(stripId);
+            EMOJIS.forEach(function (e) {
+                var b = document.createElement('button');
+                b.className = 'emoji-btn';
+                b.textContent = e;
+                b.onclick = function () { insertEmoji(boxId, e); };
+                strip.appendChild(b);
+            });
+        }
+
+        function insertEmoji(boxId, em) {
+            var el = document.getElementById(boxId);
+            var start = el.selectionStart || el.value.length;
+            var end = el.selectionEnd || el.value.length;
+            el.value = el.value.slice(0, start) + em + el.value.slice(end);
+            el.selectionStart = el.selectionEnd = start + em.length;
+            el.focus();
+            if (boxId === 'sharedBox') onSharedInput();
+            else if (boxId === 'composerBox') onComposerInput();
+        }
+
+        function toggleEmojis(stripId) {
+            var strip = document.getElementById(stripId);
+            if (strip) strip.classList.toggle('show');
+        }
+
+        function postMessage() {
+            var box = document.getElementById('composerBox');
+            var val = box.value.trim();
+            if (!val || !postsRef) return;
+            postsRef.push({
+                text: val,
+                author: myName,
+                color: myColor,
+                ts: Date.now()
+            });
+            box.value = '';
+            if (db && myName) db.ref('rooms/' + room + '/typing/' + uid).remove();
+            box.focus();
+        }
+
+        function delPost(key) {
+            if (postsRef) postsRef.child(key).remove();
+        }
+
+        /* ---------- render ---------- */
+        function addPost(snap) {
+            var d = snap.val();
+            if (!d) return;
+            var feed = document.getElementById('feed');
+            document.querySelector('.empty') && document.querySelector('.empty').remove();
+
+            var el = document.createElement('div');
+            el.className = 'post';
+            el.id = 'post-' + snap.key;
+            el.style.borderLeftColor = d.color || '#ff9ecb';
+
+            el.innerHTML =
+                '<div class="post-head">' +
+                    '<div class="post-author">' +
+                        '<span class="dot-online" style="background:' + (d.color || '#ff9ecb') + '"></span>' +
+                        (d.author || 'someone') +
+                    '</div>' +
+                    '<div style="display:flex;align-items:center;gap:4px">' +
+                        '<span class="post-time"></span>' +
+                        '<button class="del" title="delete / supprimer" onclick="delPost(\'' + snap.key + '\')">✕</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="post-body"></div>';
+
+            el.querySelector('.post-body').textContent = d.text;
+            el.querySelector('.post-time').textContent = fmtTime(d.ts);
+            feed.appendChild(el);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function fmtTime(ts) {
+            if (!ts) return '';
+            return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function showEmpty() {
+            var feed = document.getElementById('feed');
+            if (!feed.children.length) {
+                var el = document.createElement('div');
+                el.className = 'empty';
+                el.textContent = 'Nothing yet — say something sweet 🤍';
+                feed.appendChild(el);
+            }
+        }
+
+        function renderPresence(snap) {
+            var v = snap.val() || {};
+            var holder = document.getElementById('presence');
+            holder.innerHTML = '';
+            var now = Date.now();
+            var byName = {};
+            for (var k in v) {
+                var p = v[k];
+                if (!p || !p.online) continue;
+                if (now - (p.last || 0) > 90000) continue; /* ignore stale/ghost sessions */
+                var nm = p.name || 'someone';
+                if (!byName[nm] || (p.last || 0) > (byName[nm].last || 0)) byName[nm] = { key: k, last: p.last, data: p };
+            }
+            Object.keys(byName).forEach(function (nm) {
+                var entry = byName[nm];
+                var chip = document.createElement('span');
+                chip.className = 'chip';
+                var you = entry.key === uid;
+                chip.innerHTML = '<span class="dot-online" style="background:' + (entry.data.color || '#9ecbff') + '"></span>' + nm + (you ? ' (you)' : '');
+                if (you) chip.style.borderColor = 'rgba(255,230,180,0.5)';
+                holder.appendChild(chip);
+            });
+        }
+
+        function prunePresence() {
+            if (!presenceRef) return;
+            presenceRef.once('value', function (snap) {
+                var v = snap.val() || {}, now = Date.now(), updates = {};
+                for (var k in v) {
+                    if (k === uid) continue;
+                    if (now - (v[k].last || 0) > 180000) updates[k] = null;
+                }
+                if (Object.keys(updates).length) presenceRef.update(updates);
+            });
+        }
+
+        /* ---------- star field ---------- */
+        var starBox = document.getElementById('stars');
+        for (var i = 0; i < 90; i++) {
+            var s = document.createElement('div');
+            s.className = 'star';
+            var sz = Math.random() * 2.2 + 1;
+            s.style.width = sz + 'px';
+            s.style.height = sz + 'px';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.animationDelay = (Math.random() * 2.5) + 's';
+            starBox.appendChild(s);
+        }
+
+        buildEmojiStrips();
+    </script>
+</body>
+</html>
